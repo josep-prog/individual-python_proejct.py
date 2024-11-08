@@ -147,17 +147,47 @@ class ConfirmationHandler(SimpleHTTPRequestHandler):
             # Log the confirmation for the parent email
             print(f"Confirmation received for report from: {email}")
             
-            # Respond with a success message
+            # Send confirmation email back to sender
+            self.send_confirmation_to_sender(email)
+
+            # Respond with a simple confirmation page
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
-            self.wfile.write(b"Thank you for confirming receipt of the report!")
+            self.wfile.write(b"Message Received. Thank you for confirming.")
+
         else:
             # Respond with an error message
             self.send_response(400)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             self.wfile.write(b"Invalid confirmation link!")
+
+    def send_confirmation_to_sender(self, parent_email):
+        # Send confirmation email back to the sender (student)
+        sender_email = "sender_email@example.com"
+        sender_password = "your_sender_email_password"
+        recipient_email = sender_email
+
+        # Craft the confirmation message
+        message = f"The parent with email {parent_email} has confirmed receipt of the report."
+
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = recipient_email
+        msg['Subject'] = "Parent Confirmation Received"
+
+        msg.attach(MIMEText(message, 'plain'))
+
+        try:
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, recipient_email, msg.as_string())
+            server.quit()
+            print(f"Confirmation sent to {sender_email}")
+        except Exception as e:
+            print(f"Failed to send confirmation: {str(e)}")
 
 
 # Run the server in a separate thread
