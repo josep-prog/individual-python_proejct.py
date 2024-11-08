@@ -9,6 +9,7 @@ from tabulate import tabulate
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 import urllib.parse
 
+
 # Class Definitions
 
 class Module:
@@ -95,13 +96,32 @@ class Student:
     def send_report_to_parent(self, parent_email, sender_email, app_password):
         report = self.generate_report()
 
+        # Create a confirmation URL with a unique token (or use a simple query param for now)
+        confirmation_url = f"http://localhost:8000/confirm?email={self.email}"
+
+        # HTML Email with a button for confirmation
+        html_content = f"""
+        <html>
+            <body>
+                <h2>Student Report for {self.name}</h2>
+                <p>{report}</p>
+                <p><b>To confirm receipt of this report, click the button below:</b></p>
+                <a href="{confirmation_url}">
+                    <button style="padding: 10px 20px; background-color: green; color: white; border: none; font-size: 16px;">Confirm Receipt</button>
+                </a>
+                <p>If you are unable to click the button, please copy and paste this link into your browser:</p>
+                <p>{confirmation_url}</p>
+            </body>
+        </html>
+        """
+
         # Email setup
         msg = MIMEMultipart()
         msg['From'] = sender_email
         msg['To'] = parent_email
         msg['Subject'] = f"Student Report for {self.name}"
 
-        msg.attach(MIMEText(report, 'plain'))
+        msg.attach(MIMEText(html_content, 'html'))
 
         try:
             server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -122,9 +142,11 @@ class ConfirmationHandler(SimpleHTTPRequestHandler):
         parsed_path = urllib.parse.urlparse(self.path)
         query_params = urllib.parse.parse_qs(parsed_path.query)
 
-        if 'confirmation' in query_params and query_params['confirmation'][0] == 'true':
-            # Log the confirmation
-            print("Parent confirmed receipt of the report!")
+        if 'email' in query_params:
+            email = query_params['email'][0]
+            # Log the confirmation for the parent email
+            print(f"Confirmation received for report from: {email}")
+            
             # Respond with a success message
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
@@ -136,6 +158,7 @@ class ConfirmationHandler(SimpleHTTPRequestHandler):
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             self.wfile.write(b"Invalid confirmation link!")
+
 
 # Run the server in a separate thread
 def run_server(host='0.0.0.0', port=8000):
@@ -167,7 +190,7 @@ def main():
     # Send report to parent
     parent_email = "josephnishimwe398@gmail.com"
     sender_email = "j.nishimwe@alustudent.com"
-    app_password = "obxl xknj hpue jqwb"  # Use your app password here
+    app_password = "your_app_password"  # Use your app password here
     student.send_report_to_parent(parent_email, sender_email, app_password)
 
     # Start the HTTP server in a separate thread
