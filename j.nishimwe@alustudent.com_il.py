@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -108,7 +111,7 @@ class Student:
 # Example usage
 
 # Creating student
-student = Student("John Doe", "johndoe@student.com")
+student = Student("Joseph Nishimwe", "j.nishimwe@alustudent.com")
 
 # Creating courses and modules
 course_1 = Course("Introduction to Programming and Databases")
@@ -126,7 +129,7 @@ student.add_course(course_1)
 student.add_course(course_2)
 
 # Generate report and send email
-parent_email = "julesparent@example.com"
-sender_email = "j.nishimwe@alustudent.com"
+parent_email = "josephnishimwe398@gmail.com"
+sender_email = "j.nishimwe@alustudent.com" 
 app_password = "obxlxknjhpuejqwb"  # Your app password
 student.send_report_to_parent(parent_email, sender_email, app_password)
