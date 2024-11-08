@@ -1,7 +1,7 @@
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from tabulate import tabulate
+from tabulate import tabulate  # Make sure you have the tabulate module installed
 
 class Module:
     def __init__(self, name, score, weight):
@@ -16,7 +16,7 @@ class Course:
     def __init__(self, name):
         self.name = name
         self.modules = []
-    
+
     def add_module(self, module):
         self.modules.append(module)
 
@@ -29,10 +29,7 @@ class Course:
         return total_score / len(self.modules)
 
     def check_retakes(self):
-        retakes = []
-        for module in self.modules:
-            if module.score < 50:
-                retakes.append(module.name)
+        retakes = [module.name for module in self.modules if module.score < 50]
         return retakes
 
 class Student:
@@ -53,37 +50,43 @@ class Student:
         report = f"Report for {self.name} ({self.email})\n"
         report += "------------------------------------\n"
         
-        # Loop through courses to generate a table for each
+        table_data = []
         for course in self.courses:
-            report += f"\nCourse: {course.name}\n"
-            table_data = []
-            for module in course.modules:
-                table_data.append([module.name, f"{module.score}%", f"{module.weight}%"])
-            
-            # Table header and formatted table
-            headers = ["Module", "Score", "Weight"]
-            course_table = tabulate(table_data, headers, tablefmt="grid")
-            report += course_table
-            
-            # Calculate averages and retake info
-            avg = course.get_course_average()
+            course_avg = course.get_course_average()
             retakes = course.check_retakes()
-            report += f"\n  Course Average: {avg:.2f}%\n"
+            
+            # Collecting each course's modules and their details
+            for module in course.modules:
+                table_data.append([course.name, module.name, f"{module.score}%", f"{module.weight}%", f"{module.get_weighted_score():.2f}%"])
+            
+            # Adding course average and retakes status
+            table_data.append([course.name, "Course Average", f"{course_avg:.2f}%", "N/A", "N/A"])
             if retakes:
-                report += f"  Retake Required for: {', '.join(retakes)}\n"
+                table_data.append([course.name, "Retakes Required", ", ".join(retakes), "N/A", "N/A"])
             else:
-                report += f"  No Retakes Required\n"
+                table_data.append([course.name, "Retakes Required", "None", "N/A", "N/A"])
+
+            report += f"\nCourse: {course.name}\n"
+            report += f"Course Average: {course_avg:.2f}%\n"
+            if retakes:
+                report += f"Retakes Required: {', '.join(retakes)}\n"
+            else:
+                report += "No Retakes Required\n"
             report += "------------------------------------\n"
-        
-        # Calculate overall GPA
+
+        # Adding overall GPA
         gpa = self.calculate_gpa()
         report += f"Overall GPA: {gpa:.2f}%\n"
+
+        # Adding the table formatted data into the report
+        table_report = tabulate(table_data, headers=["Course", "Module", "Score", "Weight", "Weighted Score"], tablefmt="grid")
+        report += "\nDetailed Report:\n" + table_report
         
         return report
 
     def send_report_to_parent(self, parent_email, sender_email, app_password):
         report = self.generate_report()
-        
+
         # Email setup
         msg = MIMEMultipart()
         msg['From'] = sender_email
@@ -101,7 +104,6 @@ class Student:
             print(f"Report sent to {parent_email}")
         except Exception as e:
             print(f"Failed to send email: {str(e)}")
-
 
 # Example usage
 
