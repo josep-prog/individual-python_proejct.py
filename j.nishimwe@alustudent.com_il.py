@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
-
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from tabulate import tabulate  # Make sure you have the tabulate module installed
+from tabulate import tabulate  # Ensure tabulate module is installed
 
 class Module:
     def __init__(self, name, score, weight):
@@ -51,13 +50,17 @@ class Student:
 
     def generate_report(self):
         report = f"Report for {self.name} ({self.email})\n"
-        report += "------------------------------------\n"
+        report += "=" * 40 + "\n"
         
         table_data = []
+        overall_avg_score = 0
+        total_weighted_score = 0
+        total_weight = 0
         for course in self.courses:
             course_avg = course.get_course_average()
             retakes = course.check_retakes()
-            
+            overall_avg_score += course_avg
+
             # Collecting each course's modules and their details
             for module in course.modules:
                 table_data.append([course.name, module.name, f"{module.score}%", f"{module.weight}%", f"{module.get_weighted_score():.2f}%"])
@@ -75,16 +78,37 @@ class Student:
                 report += f"Retakes Required: {', '.join(retakes)}\n"
             else:
                 report += "No Retakes Required\n"
-            report += "------------------------------------\n"
 
-        # Adding overall GPA
+            report += "-" * 40 + "\n"
+
+            # Calculate total weighted score for GPA
+            total_weighted_score += course.get_total_weighted_score()
+            total_weight += sum(module.weight for module in course.modules)
+
+        # Adding overall GPA and course average
         gpa = self.calculate_gpa()
-        report += f"Overall GPA: {gpa:.2f}%\n"
+        overall_avg_score /= len(self.courses)
+
+        report += f"\nOverall GPA: {gpa:.2f}%\n"
+        report += f"Overall Course Average: {overall_avg_score:.2f}%\n"
+
+        # Generate a comment based on GPA
+        if gpa >= 90:
+            report += "Perfect Comment: Excellent work! Keep up the outstanding performance!\n"
+        elif gpa >= 75:
+            report += "Perfect Comment: Great job! You're on the right track.\n"
+        elif gpa >= 60:
+            report += "Perfect Comment: Good effort! Focus more on the weaker areas.\n"
+        else:
+            report += "Perfect Comment: You need to work harder to improve your grades.\n"
 
         # Adding the table formatted data into the report
         table_report = tabulate(table_data, headers=["Course", "Module", "Score", "Weight", "Weighted Score"], tablefmt="grid")
         report += "\nDetailed Report:\n" + table_report
         
+        # Print the report to terminal
+        print(report)
+
         return report
 
     def send_report_to_parent(self, parent_email, sender_email, app_password):
@@ -107,6 +131,7 @@ class Student:
             print(f"Report sent to {parent_email}")
         except Exception as e:
             print(f"Failed to send email: {str(e)}")
+
 
 # Example usage
 
