@@ -6,6 +6,7 @@ from email.mime.text import MIMEText
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import logging
 import time
+import threading
 
 # Global dictionary to store email confirmation data
 confirmation_store = {}
@@ -150,8 +151,7 @@ class Student:
 
         # Adding the table formatted data into the report
         report += "\nDetailed Report:\n"
-        table_report = self.create_table(table_data)
-        report += table_report
+        report += self.create_table(table_data)
 
         return report
 
@@ -233,5 +233,7 @@ def main():
     student.add_course(course_2)
 
     # Start the HTTP server for tracking and confirmation
-    import threading
-    server_thread = threading.Thread(target=run_server, args=("0.0.0.0",
+    server_thread = threading.Thread(target=run_server, args=("0.0.0.0", 8000), daemon=True)
+    server_thread.start()
+
+    # Send report to
