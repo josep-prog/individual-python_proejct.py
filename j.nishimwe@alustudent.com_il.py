@@ -1,107 +1,130 @@
 import smtplib
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from tabulate import tabulate
 
-# Create a class for the assignment
-class Assignment:
-    def __init__(self, name, due_date, submitted_date, score, weight, assignment_type, status):
+class Module:
+    def __init__(self, name, score, weight):
         self.name = name
-        self.due_date = due_date
-        self.submitted_date = submitted_date
         self.score = score
         self.weight = weight
-        self.assignment_type = assignment_type
-        self.status = status
 
-    def calculate_weighted_score(self):
-        return (self.score * self.weight) / 100
+    def get_weighted_score(self):
+        return self.score * self.weight / 100
 
-# Create a class for the student
-class Student:
-    def __init__(self, name, email, assignments):
+class Course:
+    def __init__(self, name):
         self.name = name
-        self.email = email
-        self.assignments = assignments
+        self.modules = []
+    
+    def add_module(self, module):
+        self.modules.append(module)
 
-    def calculate_total_score(self):
-        total_score = sum([assignment.calculate_weighted_score() for assignment in self.assignments])
+    def get_total_weighted_score(self):
+        total_score = sum(module.get_weighted_score() for module in self.modules)
         return total_score
 
+    def get_course_average(self):
+        total_score = sum(module.score for module in self.modules)
+        return total_score / len(self.modules)
+
+    def check_retakes(self):
+        retakes = []
+        for module in self.modules:
+            if module.score < 50:
+                retakes.append(module.name)
+        return retakes
+
+class Student:
+    def __init__(self, name, email):
+        self.name = name
+        self.email = email
+        self.courses = []
+
+    def add_course(self, course):
+        self.courses.append(course)
+
     def calculate_gpa(self):
-        total_score = self.calculate_total_score()
-        gpa = (total_score / 100) * 4.0  # Assuming GPA is based on a 4.0 scale
-        return round(gpa, 2)
+        total_weighted_score = sum(course.get_total_weighted_score() for course in self.courses)
+        total_weight = sum(module.weight for course in self.courses for module in course.modules)
+        return (total_weighted_score / total_weight) * 100
 
-    def check_progress(self):
-        total_score = self.calculate_total_score()
-        if total_score >= 50:
-            return "Good standing"
-        else:
-            return "Needs improvement"
+    def generate_report(self):
+        report = f"Report for {self.name} ({self.email})\n"
+        report += "------------------------------------\n"
+        
+        # Loop through courses to generate a table for each
+        for course in self.courses:
+            report += f"\nCourse: {course.name}\n"
+            table_data = []
+            for module in course.modules:
+                table_data.append([module.name, f"{module.score}%", f"{module.weight}%"])
+            
+            # Table header and formatted table
+            headers = ["Module", "Score", "Weight"]
+            course_table = tabulate(table_data, headers, tablefmt="grid")
+            report += course_table
+            
+            # Calculate averages and retake info
+            avg = course.get_course_average()
+            retakes = course.check_retakes()
+            report += f"\n  Course Average: {avg:.2f}%\n"
+            if retakes:
+                report += f"  Retake Required for: {', '.join(retakes)}\n"
+            else:
+                report += f"  No Retakes Required\n"
+            report += "------------------------------------\n"
+        
+        # Calculate overall GPA
+        gpa = self.calculate_gpa()
+        report += f"Overall GPA: {gpa:.2f}%\n"
+        
+        return report
 
-    def check_resubmission_eligibility(self):
-        eligible_assignments = [assignment.name for assignment in self.assignments if assignment.score < 50]
-        return eligible_assignments
+    def send_report_to_parent(self, parent_email, sender_email, app_password):
+        report = self.generate_report()
+        
+        # Email setup
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = parent_email
+        msg['Subject'] = f"Student Report for {self.name}"
 
-    def generate_transcript(self):
-        sorted_assignments = sorted(self.assignments, key=lambda x: x.score)
-        transcript = "Assignment Breakdown (Sorted by Score):\n"
-        for assignment in sorted_assignments:
-            transcript += f"{assignment.name} | {assignment.assignment_type} | {assignment.score}% | Weight: {assignment.weight}%\n"
-        return transcript
+        msg.attach(MIMEText(report, 'plain'))
 
-# Sending email function
-def send_email_to_parent(student, parent_email, parent_name, subject, body):
-    sender_email = "j.nishimwe@alustudent.com"
-    sender_password = "obxl xknj hpue jqwb"
-    try:
-        message = MIMEMultipart()
-        message['From'] = sender_email
-        message['To'] = parent_email
-        message['Subject'] = subject
-
-        body_content = f"Dear {parent_name},\n\n{body}\n\nRegards,\n{student.name}"
-        message.attach(MIMEText(body_content, 'plain'))
-
-        # Connect to the SMTP server and send the email
-        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+        try:
+            server = smtplib.SMTP('smtp.gmail.com', 587)
             server.starttls()
-            server.login(sender_email, sender_password)
-            server.sendmail(sender_email, parent_email, message.as_string())
+            server.login(sender_email, app_password)
+            server.sendmail(sender_email, parent_email, msg.as_string())
+            server.quit()
+            print(f"Report sent to {parent_email}")
+        except Exception as e:
+            print(f"Failed to send email: {str(e)}")
 
-        print(f"Email sent to {parent_name} ({parent_email})")
 
-    except Exception as e:
-        print(f"Error sending email: {e}")
+# Example usage
 
-# Define student data
-assignments = [
-    Assignment("Python - Hello, World", "Sep 1", "Aug 30", 100, 10, "Formative", "Completed"),
-    Assignment("Python - if/else, loops, functions", "Sep 5", "Sep 4", 100, 10, "Formative", "Completed"),
-    Assignment("Python - Classes and Objects", "Sep 10", "Sep 8", 100, 15, "Formative", "Completed"),
-    Assignment("Python - Inheritance", "Sep 15", "Sep 14", 40.59, 20, "Formative", "Completed"),
-    Assignment("SQL - Introduction", "Sep 20", "Sep 19", 100, 10, "Summative", "Completed"),
-    Assignment("Final Exam", "Nov 18", "", 0, 35, "Summative", "Incomplete")
-]
+# Creating student
+student = Student("John Doe", "johndoe@student.com")
 
-student = Student("Joseph Nishimwe", "nishimwejoseph26@gmail.com", assignments)
+# Creating courses and modules
+course_1 = Course("Introduction to Programming and Databases")
+course_1.add_module(Module("Python - Hello, World", 100, 10))
+course_1.add_module(Module("Python - Inheritance", 40.59, 20))
+course_1.add_module(Module("Python - Data Structures", 100, 30))
 
-# Generate report and email
-progress = student.check_progress()
-gpa = student.calculate_gpa()
-resubmission_eligible = student.check_resubmission_eligibility()
-transcript = student.generate_transcript()
+course_2 = Course("Self-Leadership and Team Dynamics")
+course_2.add_module(Module("Enneagram Test", 80, 10))
+course_2.add_module(Module("Empathy Discussion Board", 65, 20))
+course_2.add_module(Module("Community Building Quiz", 90, 20))
 
-# Preparing the email body
-body = f"Student: {student.name}\nProgress: {progress}\nGPA: {gpa}\nResubmission Eligibility: {', '.join(resubmission_eligible) if resubmission_eligible else 'None'}\n\nTranscript:\n{transcript}"
+# Adding courses to student
+student.add_course(course_1)
+student.add_course(course_2)
 
-# Send the report to the parent
-send_email_to_parent(student, "nishimwejoseph26@gmail.com", "TUYIZERE JULES", "Student Progress Report", body)
-
-# Displaying the report on the terminal
-print("Student Progress Report")
-print(f"Name: {student.name}")
-print(f"Progress: {progress}")
-print(f"GPA: {gpa}")
-print(f"Resubmission Eligibility: {', '.join(resubmission_eligible) if resubmission_eligible else 'None'}")
-print(f"\nTranscript:\n{transcript}")
+# Generate report and send email
+parent_email = "julesparent@example.com"
+sender_email = "j.nishimwe@alustudent.com"
+app_password = "obxlxknjhpuejqwb"  # Your app password
+student.send_report_to_parent(parent_email, sender_email, app_password)
