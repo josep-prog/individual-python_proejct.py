@@ -220,7 +220,7 @@ def main():
     # Send report to parent
     parent_email = "josephnishimwe398@gmail.com"
     sender_email = "j.nishimwe@alustudent.com"
-    app_password = "your_app_password"  # Use your app password here
+    app_password = "obxl xknj hpue jqwb"  # Use your app password here
     student.send_report_to_parent(parent_email, sender_email, app_password)
 
     # Start the HTTP server in a separate thread
