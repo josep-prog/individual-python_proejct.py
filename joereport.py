@@ -189,6 +189,9 @@ course_2.add_assignment(Assignment("Community Building Quiz", 90, 20, 'Summative
 student.add_course(course_1)
 student.add_course(course_2)
 
+# Print report to terminal
+print(student.generate_report(sort_order="ascending"))
+
 # Optional: Send report to parent's email
 parent_email = "josephnishimwe398@gmail.com"
 sender_email = "j.nishimwe@alustudent.com"
