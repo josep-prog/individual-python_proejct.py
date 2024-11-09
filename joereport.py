@@ -191,6 +191,6 @@ student.add_course(course_2)
 
 # Optional: Send report to parent's email
 parent_email = "josephnishimwe398@gmail.com"
-sender_email = "your_email@example.com"
-app_password = "your_app_password"
+sender_email = "j.nishimwe@alustudent.com"
+app_password = "vhdu lbbe cixj islr"
 student.send_report_to_parent(parent_email, sender_email, app_password)
