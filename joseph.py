@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from tabulate import tabulate  # Ensure tabulate module is installed
+
+# Your class definitions and logic follow here
+
 class Assignment:
     def __init__(self, name, score, weight, type):
         self.name = name
@@ -140,5 +147,5 @@ student.add_course(course_2)
 # Generate report and send email
 parent_email = "josephnishimwe398@gmail.com"
 sender_email = "j.nishimwe@alustudent.com"
-app_password = "your_app_password"  # Use a real app password here
+app_password = "vhdu lbbe cixj islr"  # Use a real app password here
 student.send_report_to_parent(parent_email, sender_email, app_password, sort_order="descending")
