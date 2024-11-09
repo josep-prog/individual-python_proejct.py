@@ -194,4 +194,22 @@ course_2.add_assignment(Assignment("Community Building Quiz", 90, 20, 'Summative
 
 course_3 = Course("Introduction to IT Tools and Linux", total_sessions=10)  # Added new course
 course_3.add_assignment(Assignment("Pre-reading Sunday 1", 90, 10, 'Formative'))
-course_3.add_assignment
+course_3.add_assignment(Assignment("Discussion Board", 100, 20, 'Formative'))
+course_3.add_assignment(Assignment("In Call Check-in Quiz 1", 65, 15, 'Formative'))
+course_3.add_assignment(Assignment("Pre-reading Sunday 2", 83.33, 15, 'Formative'))
+course_3.add_assignment(Assignment("General Quiz", 75.51, 15, 'Formative'))
+course_3.add_assignment(Assignment("Shell, processes and signals", 100, 25, 'Summative'))
+
+# Adding courses to student
+student.add_course(course_1)
+student.add_course(course_2)
+student.add_course(course_3)
+
+# Print report to terminal
+print(student.generate_report(sort_order="ascending"))
+
+# Optional: Send report to parent's email
+parent_email = "josephnishimwe398@gmail.com"
+sender_email = "j.nishimwe@alustudent.com"
+app_password = "vhdu lbbe cixj islr"
+student.send_report_to_parent(parent_email, sender_email, app_password)
