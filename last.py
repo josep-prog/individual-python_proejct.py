@@ -65,14 +65,6 @@ class Course:
         sorted_assignments = sorted(self.assignments, key=lambda x: x.score, reverse=(sort_order == "descending"))
         return sorted_assignments
 
-    def calculate_total_percentage(self):
-        total_weight = 0
-        total_score = 0
-        for assignment in self.assignments:
-            total_weight += assignment.weight
-            total_score += assignment.get_weighted_score()
-        return total_score / total_weight * 100 if total_weight else 0
-
 
 class Student:
     def __init__(self, name, email):
@@ -98,71 +90,54 @@ class Student:
         report = f"Report for {self.name} ({self.email})\n"
         report += "=" * 40 + "\n"
 
-        # Track overall data for GPA
-        overall_score = 0
-        total_weight = 0
-
         table_data = []
 
         for course in self.courses:
-            # Classifying course based on name
-            if "Programming" in course.name or "Linux" in course.name:
-                course_type = "Software Related Course"
-            elif "Leadership" in course.name or "Team Dynamics" in course.name:
-                course_type = "Leadership and Entrepreneur Skills"
-            else:
-                course_type = "Other"
-
-            # Check course progression (pass/fail)
             passed, formative_total, summative_total = course.check_progression()
             resubmissions = course.get_resubmission_candidates()
             attendance_percentage = course.calculate_attendance()
 
-            # Collecting course summary
+            # Debugging: Print course info
+            print(f"Processing course: {course.name}")
+            print(f"Attendance: {attendance_percentage:.2f}%")
+            print(f"Passed: {'Yes' if passed else 'No'}")
+
             report += f"\nCourse: {course.name}\n"
             report += f"Formative Group Total: {formative_total:.2f}%\n"
             report += f"Summative Group Total: {summative_total:.2f}%\n"
-            report += f"Total Course Percentage: {course.calculate_total_percentage():.2f}%\n"
             report += "Passed: " + ("Yes" if passed else "No") + "\n"
 
-            # Handle resubmission eligibility
             if resubmissions:
                 report += f"Eligible for Resubmission: {', '.join(resubmissions)}\n"
             else:
                 report += "No Resubmissions Needed.\n"
 
-            # Attendance report
             report += f"Attendance: {attendance_percentage:.2f}%\n"
             if attendance_percentage < 75:
                 report += "Warning: Attendance is below 75%. The student should attend more classes.\n"
             else:
                 report += "Attendance is satisfactory.\n"
 
-            # Generate transcript for the course
             report += "\nTranscript Breakdown:\n"
             report += tabulate([[assignment.name, assignment.type, f"{assignment.score}%", f"{assignment.weight}%"] for assignment in course.generate_transcript(sort_order)], 
                                headers=["Assignment", "Type", "Score (%)", "Weight (%)"], tablefmt="grid")
             report += "\n" + "-" * 60 + "\n"
 
-            # Collecting data for overall GPA calculation
             for assignment in course.assignments:
-                table_data.append([course.name, assignment.name, f"{assignment.score}%", f"{assignment.weight}%", f"{assignment.get_weighted_score():.2f}%", course_type])
+                table_data.append([course.name, assignment.name, f"{assignment.score}%", f"{assignment.weight}%", f"{assignment.get_weighted_score():.2f}%"])
 
-        # Overall GPA
         gpa = self.calculate_gpa()
         report += f"\nOverall GPA: {gpa:.2f}%\n"
         report += "=" * 40 + "\n"
 
-        # Generate final report table
         report += "\nDetailed Report:\n"
-        report += tabulate(table_data, headers=["Course", "Assignment", "Score", "Weight", "Weighted Score", "Course Type"], tablefmt="grid")
+        report += tabulate(table_data, headers=["Course", "Assignment", "Score", "Weight", "Weighted Score"], tablefmt="grid")
         
         return report
 
     def send_report_to_parent(self, parent_email, sender_email, app_password, sort_order="ascending"):
         report = self.generate_report(sort_order)
 
-        # Send email logic (same as your current code, using SMTP)
         msg = MIMEMultipart()
         msg['From'] = sender_email
         msg['To'] = parent_email
@@ -192,4 +167,27 @@ course_1.add_assignment(Assignment("Python - Data Structures", 100, 30, 'Summati
 course_1.mark_attendance("Sep 16", "Present")
 course_1.mark_attendance("Sep 17", "Present")
 course_1.mark_attendance("Sep 18", "Present")
-course
+course_1.mark_attendance("Sep 19", "Present")
+course_1.mark_attendance("Sep 20", "Present")
+course_1.mark_attendance("Sep 21", "Present")
+course_1.mark_attendance("Sep 22", "Present")
+
+course_2 = Course("Self-Leadership and Team Dynamics", total_sessions=7)
+course_2.add_assignment(Assignment("Enneagram Test", 80, 10, 'Formative'))
+course_2.add_assignment(Assignment("Empathy Discussion Board", 65, 20, 'Formative'))
+course_2.add_assignment(Assignment("Community Building Quiz", 90, 20, 'Summative'))
+
+course_3 = Course("Introduction to IT Tools and Linux", total_sessions=10)
+course_3.add_assignment(Assignment("Pre-reading Sunday 1", 90, 10, 'Formative'))
+course_3.add_assignment(Assignment("Discussion Board", 100, 20, 'Formative'))
+course_3.add_assignment(Assignment("In Call Check-in Quiz 1", 65, 15, 'Formative'))
+course_3.add_assignment(Assignment("Pre-reading Sunday 2", 83.33, 15, 'Formative'))
+course_3.add_assignment(Assignment("General Quiz", 75.51, 15, 'Formative'))
+course_3.add_assignment(Assignment("Shell, processes and signals", 100, 25, 'Summative'))
+
+student.add_course(course_1)
+student.add_course(course_2)
+student.add_course(course_3)
+
+# Generate and print the report
+print(student.generate_report(sort_order="ascending"))
