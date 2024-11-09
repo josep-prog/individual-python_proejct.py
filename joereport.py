@@ -1,4 +1,4 @@
-#!/usr/bin/env python3 
+#!/usr/bin/env python3
 
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -172,22 +172,31 @@ course_1 = Course("Introduction to Programming and Databases", total_sessions=7)
 course_1.add_assignment(Assignment("Python - Hello, World", 100, 10, 'Formative'))
 course_1.add_assignment(Assignment("Python - Inheritance", 40.59, 20, 'Formative'))
 course_1.add_assignment(Assignment("Python - Data Structures", 100, 30, 'Summative'))
-course_1.mark_attendance("Sep 16", "Absent")
+course_1.mark_attendance("Sep 16", "Present")
 course_1.mark_attendance("Sep 17", "Present")
 course_1.mark_attendance("Sep 18", "Present")
 course_1.mark_attendance("Sep 19", "Present")
 course_1.mark_attendance("Sep 20", "Present")
 course_1.mark_attendance("Sep 21", "Present")
-course_1.mark_attendance("Sep 22", "Present")
+course_1.mark_attendance("Sep 22", "Present")  # Corrected attendance to 100% for all sessions
 
 course_2 = Course("Self-Leadership and Team Dynamics", total_sessions=7)
 course_2.add_assignment(Assignment("Enneagram Test", 80, 10, 'Formative'))
 course_2.add_assignment(Assignment("Empathy Discussion Board", 65, 20, 'Formative'))
 course_2.add_assignment(Assignment("Community Building Quiz", 90, 20, 'Summative'))
 
+course_3 = Course("Introduction to IT Tools and Linux", total_sessions=10)  # Added new course
+course_3.add_assignment(Assignment("Pre-reading Sunday 1", 90, 10, 'Formative'))
+course_3.add_assignment(Assignment("Discussion Board", 100, 20, 'Formative'))
+course_3.add_assignment(Assignment("In Call Check-in Quiz 1", 65, 15, 'Formative'))
+course_3.add_assignment(Assignment("Pre-reading Sunday 2", 83.33, 15, 'Formative'))
+course_3.add_assignment(Assignment("General Quiz", 75.51, 15, 'Formative'))
+course_3.add_assignment(Assignment("Shell, processes and signals", 100, 25, 'Summative'))
+
 # Adding courses to student
 student.add_course(course_1)
 student.add_course(course_2)
+student.add_course(course_3)
 
 # Print report to terminal
 print(student.generate_report(sort_order="ascending"))
