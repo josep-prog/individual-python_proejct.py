@@ -1,11 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3 
 
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from tabulate import tabulate  # Ensure tabulate module is installed
-
-# Your class definitions and logic follow here
 
 class Assignment:
     def __init__(self, name, score, weight, type):
@@ -66,6 +64,17 @@ class Student:
     def add_course(self, course):
         self.courses.append(course)
 
+    def calculate_gpa(self):
+        total_weighted_score = 0
+        total_weight = 0
+
+        for course in self.courses:
+            for assignment in course.assignments:
+                total_weighted_score += assignment.get_weighted_score()
+                total_weight += assignment.weight
+
+        return (total_weighted_score / total_weight) * 100 if total_weight else 0
+
     def generate_report(self, sort_order="ascending"):
         report = f"Report for {self.name} ({self.email})\n"
         report += "=" * 40 + "\n"
@@ -74,12 +83,14 @@ class Student:
         overall_score = 0
         total_weight = 0
 
+        table_data = []
+
         for course in self.courses:
             # Check course progression (pass/fail)
             passed, formative_total, summative_total = course.check_progression()
             resubmissions = course.get_resubmission_candidates()
 
-            # Print course summary
+            # Collecting course summary
             report += f"\nCourse: {course.name}\n"
             report += f"Formative Group Total: {formative_total:.2f}%\n"
             report += f"Summative Group Total: {summative_total:.2f}%\n"
@@ -93,14 +104,23 @@ class Student:
 
             # Generate transcript for the course
             report += "\nTranscript Breakdown:\n"
-            report += "Assignment          Type            Score(%)    Weight (%)\n"
-            report += "-" * 60 + "\n"
-            sorted_assignments = course.generate_transcript(sort_order)
-            for assignment in sorted_assignments:
-                report += f"{assignment.name:<20} {assignment.type:<12} {assignment.score:<12} {assignment.weight:<12}\n"
+            report += tabulate([[assignment.name, assignment.type, f"{assignment.score}%", f"{assignment.weight}%"] for assignment in course.generate_transcript(sort_order)], 
+                               headers=["Assignment", "Type", "Score (%)", "Weight (%)"], tablefmt="grid")
+            report += "\n" + "-" * 60 + "\n"
 
-            report += "-" * 60 + "\n"
+            # Collecting data for overall GPA calculation
+            for assignment in course.assignments:
+                table_data.append([course.name, assignment.name, f"{assignment.score}%", f"{assignment.weight}%", f"{assignment.get_weighted_score():.2f}%"])
 
+        # Overall GPA
+        gpa = self.calculate_gpa()
+        report += f"\nOverall GPA: {gpa:.2f}%\n"
+        report += "=" * 40 + "\n"
+
+        # Generate final report table
+        report += "\nDetailed Report:\n"
+        report += tabulate(table_data, headers=["Course", "Assignment", "Score", "Weight", "Weighted Score"], tablefmt="grid")
+        
         return report
 
     def send_report_to_parent(self, parent_email, sender_email, app_password, sort_order="ascending"):
@@ -126,7 +146,6 @@ class Student:
 
 
 # Example usage
-
 student = Student("Joseph Nishimwe", "j.nishimwe@alustudent.com")
 
 # Creating courses with Formative and Summative assignments
@@ -144,8 +163,12 @@ course_2.add_assignment(Assignment("Community Building Quiz", 90, 20, 'Summative
 student.add_course(course_1)
 student.add_course(course_2)
 
-# Generate report and send email
+# Generate report and display on terminal
+report = student.generate_report(sort_order="descending")
+print(report)
+
+# Optional: Send report to parent's email
 parent_email = "josephnishimwe398@gmail.com"
 sender_email = "j.nishimwe@alustudent.com"
 app_password = "vhdu lbbe cixj islr"  # Use a real app password here
-student.send_report_to_parent(parent_email, sender_email, app_password, sort_order="descending")
+# student.send_report to_parent(parent_email, sender_email, app_password, sort_order="descending")
