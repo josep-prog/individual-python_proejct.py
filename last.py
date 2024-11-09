@@ -65,6 +65,14 @@ class Course:
         sorted_assignments = sorted(self.assignments, key=lambda x: x.score, reverse=(sort_order == "descending"))
         return sorted_assignments
 
+    def calculate_total_percentage(self):
+        total_weight = 0
+        total_score = 0
+        for assignment in self.assignments:
+            total_weight += assignment.weight
+            total_score += assignment.get_weighted_score()
+        return total_score / total_weight * 100 if total_weight else 0
+
 
 class Student:
     def __init__(self, name, email):
@@ -114,6 +122,7 @@ class Student:
             report += f"\nCourse: {course.name}\n"
             report += f"Formative Group Total: {formative_total:.2f}%\n"
             report += f"Summative Group Total: {summative_total:.2f}%\n"
+            report += f"Total Course Percentage: {course.calculate_total_percentage():.2f}%\n"
             report += "Passed: " + ("Yes" if passed else "No") + "\n"
 
             # Handle resubmission eligibility
@@ -183,34 +192,4 @@ course_1.add_assignment(Assignment("Python - Data Structures", 100, 30, 'Summati
 course_1.mark_attendance("Sep 16", "Present")
 course_1.mark_attendance("Sep 17", "Present")
 course_1.mark_attendance("Sep 18", "Present")
-course_1.mark_attendance("Sep 19", "Present")
-course_1.mark_attendance("Sep 20", "Present")
-course_1.mark_attendance("Sep 21", "Present")
-course_1.mark_attendance("Sep 22", "Present")  # Corrected attendance to 100% for all sessions
-
-course_2 = Course("Self-Leadership and Team Dynamics", total_sessions=7)
-course_2.add_assignment(Assignment("Enneagram Test", 80, 10, 'Formative'))
-course_2.add_assignment(Assignment("Empathy Discussion Board", 65, 20, 'Formative'))
-course_2.add_assignment(Assignment("Community Building Quiz", 90, 20, 'Summative'))
-
-course_3 = Course("Introduction to IT Tools and Linux", total_sessions=10)  # Added new course
-course_3.add_assignment(Assignment("Pre-reading Sunday 1", 90, 10, 'Formative'))
-course_3.add_assignment(Assignment("Discussion Board", 100, 20, 'Formative'))
-course_3.add_assignment(Assignment("In Call Check-in Quiz 1", 65, 15, 'Formative'))
-course_3.add_assignment(Assignment("Pre-reading Sunday 2", 83.33, 15, 'Formative'))
-course_3.add_assignment(Assignment("General Quiz", 75.51, 15, 'Formative'))
-course_3.add_assignment(Assignment("Shell, processes and signals", 100, 25, 'Summative'))
-
-# Adding courses to student
-student.add_course(course_1)
-student.add_course(course_2)
-student.add_course(course_3)
-
-# Print report to terminal
-print(student.generate_report(sort_order="ascending"))
-
-# Optional: Send report to parent's email
-parent_email = "josephnishimwe398@gmail.com"
-sender_email = "j.nishimwe@alustudent.com"
-app_password = "vhdu lbbe cixj islr"
-student.send_report_to_parent(parent_email, sender_email, app_password)
+course
